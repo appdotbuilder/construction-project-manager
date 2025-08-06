@@ -1,9 +1,21 @@
 
+import { db } from '../db';
+import { projectsTable } from '../db/schema';
 import { type Project } from '../schema';
 
 export const getProjects = async (): Promise<Project[]> => {
-  // This is a placeholder declaration! Real code should be implemented here.
-  // The goal of this handler is fetching all construction projects from the database
-  // with proper filtering and access control based on user permissions.
-  return Promise.resolve([]);
+  try {
+    const results = await db.select()
+      .from(projectsTable)
+      .execute();
+
+    // Convert numeric fields back to numbers
+    return results.map(project => ({
+      ...project,
+      budget: project.budget ? parseFloat(project.budget) : null
+    }));
+  } catch (error) {
+    console.error('Failed to fetch projects:', error);
+    throw error;
+  }
 };

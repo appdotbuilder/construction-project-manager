@@ -1,9 +1,23 @@
 
+import { db } from '../db';
+import { paymentApplicationsTable } from '../db/schema';
 import { type PaymentApplication } from '../schema';
+import { eq } from 'drizzle-orm';
 
 export const getPaymentApplications = async (projectId: number): Promise<PaymentApplication[]> => {
-  // This is a placeholder declaration! Real code should be implemented here.
-  // The goal of this handler is fetching all payment applications for a specific project
-  // with filtering by contractor and status.
-  return Promise.resolve([]);
+  try {
+    const results = await db.select()
+      .from(paymentApplicationsTable)
+      .where(eq(paymentApplicationsTable.project_id, projectId))
+      .execute();
+
+    return results.map(result => ({
+      ...result,
+      amount: parseFloat(result.amount),
+      work_progress: parseFloat(result.work_progress)
+    }));
+  } catch (error) {
+    console.error('Failed to get payment applications:', error);
+    throw error;
+  }
 };

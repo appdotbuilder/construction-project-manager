@@ -1,19 +1,31 @@
 
+import { db } from '../db';
+import { documentsTable } from '../db/schema';
 import { type CreateDocumentInput, type Document } from '../schema';
 
-export const createDocument = async (input: CreateDocumentInput): Promise<Document> => {
-  // This is a placeholder declaration! Real code should be implemented here.
-  // The goal of this handler is creating a new document entry for a project
-  // including drawings, work methods, material specs, permits, or reports.
-  return Promise.resolve({
-    id: 1,
-    project_id: input.project_id,
-    title: input.title,
-    type: input.type,
-    file_url: input.file_url,
-    version: input.version,
-    uploaded_by: 1, // This should come from auth context
-    approval_status: 'pending',
-    created_at: new Date()
-  } as Document);
+export const createDocument = async (input: CreateDocumentInput, uploadedBy: number): Promise<Document> => {
+  try {
+    // Insert document record
+    const result = await db.insert(documentsTable)
+      .values({
+        project_id: input.project_id,
+        title: input.title,
+        type: input.type,
+        file_url: input.file_url,
+        version: input.version,
+        uploaded_by: uploadedBy,
+        approval_status: 'pending'
+      })
+      .returning()
+      .execute();
+
+    const document = result[0];
+    return {
+      ...document,
+      created_at: document.created_at
+    };
+  } catch (error) {
+    console.error('Document creation failed:', error);
+    throw error;
+  }
 };
